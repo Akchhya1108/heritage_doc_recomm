@@ -1,8 +1,3 @@
-"""
-STEP 4: TRAIN AUTOENCODER FOR DOCUMENT CLASSIFICATION
-Reduces dimensions and creates clusters for heritage documents
-"""
-
 import json
 import os
 import numpy as np
@@ -365,7 +360,6 @@ def main():
     print(f"   - {CLASSIFIED_FILE}")
     print(f"   - {MODEL_FILE}")
     print(f"   - cluster_visualization.png")
-    print(f"\n✅ Ready for Step 5: Build Knowledge Graph!")
     print("="*70)
 
 if __name__ == "__main__":

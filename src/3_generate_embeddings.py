@@ -1,8 +1,3 @@
-"""
-STEP 3: GENERATE DOCUMENT EMBEDDINGS
-Creates vector representations of documents using Sentence Transformers
-"""
-
 import json
 import os
 import numpy as np
@@ -234,7 +229,6 @@ def main():
     print(f"   - {MAPPING_FILE}")
     print(f"\n📈 Storage info:")
     print(f"   Embeddings size: {embeddings.nbytes / (1024*1024):.2f} MB")
-    print(f"\n✅ Ready for Step 4: Train Autoencoder!")
     print("="*70)
 
 if __name__ == "__main__":

@@ -1,8 +1,3 @@
-"""
-STEP 2: ENHANCED METADATA EXTRACTION
-Extracts rich metadata for Knowledge Graph construction
-"""
-
 import json
 import os
 import re
@@ -339,8 +334,6 @@ def process_all_documents():
         print(f"    - Persons: {len(sample['entities']['persons'])}")
         print(f"    - Organizations: {len(sample['entities']['organizations'])}")
         print(f"  Keywords (top 5): {sample['keywords_tfidf'][:5]}")
-    
-    print("\n✅ Ready for Step 3: Generate Embeddings!")
     print("="*70)
 
 if __name__ == "__main__":
