@@ -28,9 +28,10 @@ data
 data/raw/**/*.json
 data/cleaned/
 data/metadata/
+knowledge_graph
 knowledge_graph/heritage_kg.gpickle
 knowledge_graph/heritage_kg.gml
-knowledge_graph/kg_visualization.png
+knowledge_graph/kg_visualization
 
 # Models (large files)
 models/
