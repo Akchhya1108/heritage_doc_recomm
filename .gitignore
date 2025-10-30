@@ -34,6 +34,8 @@ models/
 *.h5
 *.pkl
 *.pth
+heritage_kg.gpickle
+heritage_kg.gml
 
 # Jupyter Notebook
 .ipynb_checkpoints
