@@ -431,7 +431,10 @@ def save_graph(G, stats):
     os.makedirs(KG_DIR, exist_ok=True)
     
     # Save graph as pickle (preserves all attributes)
-    nx.write_gpickle(G, KG_FILE)
+    import pickle
+    with open(KG_FILE, "wb") as f:
+      pickle.dump(G, f)
+
     print(f"  ✓ Graph saved to: {KG_FILE}")
     
     # Save statistics
