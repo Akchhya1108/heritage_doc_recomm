@@ -28,14 +28,16 @@ data
 data/raw/**/*.json
 data/cleaned/
 data/metadata/
+knowledge_graph/heritage_kg.gpickle
+knowledge_graph/heritage_kg.gml
+knowledge_graph/kg_visualization.png
 
 # Models (large files)
 models/
 *.h5
 *.pkl
 *.pth
-heritage_kg.gpickle
-heritage_kg.gml
+
 
 # Jupyter Notebook
 .ipynb_checkpoints
