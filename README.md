@@ -151,14 +151,8 @@ python src/9_query_processing.py
 
 ## 🎓 Academic Context
 
-This project was developed as a final year project for [Your University Name] and is intended for submission to [Conference Name].
+This project was developed as a final year project and is intended for submission to Conference.
 
-### Citation
-If you use this work, please cite:
-```
-[Your Name]. (2025). Heritage Document Recommendation System using 
-Knowledge Graphs and Deep Learning. [Conference/Journal Name].
-```
 
 ## 🤝 Contributing
 
@@ -169,30 +163,10 @@ Contributions welcome! Please:
 4. Push to the branch
 5. Open a Pull Request
 
-## 📝 License
-
-MIT License - see LICENSE file for details
 
 ## 👤 Author
 
-**[Your Name]**
-- GitHub: [@your_username](https://github.com/your_username)
-- Email: your.email@example.com
-
-## 🙏 Acknowledgments
-
-- UNESCO World Heritage Centre
-- Wikipedia contributors
-- Archaeological Survey of India
-- Internet Archive
-
-## 📚 References
-
-1. [Key papers on Knowledge Graphs]
-2. [SimRank algorithm paper]
-3. [Autoencoder architectures]
-4. [Heritage information systems]
-
----
+**Akchhya Singh**
+- Email: akchhya1108@gmail.com
 
 **Status**: 🚧 In Development | **Version**: 1.0.0 | **Last Updated**: October 2025
