@@ -24,6 +24,7 @@ wheels/
 *.egg
 
 # Data files (don't commit large datasets)
+data
 data/raw/**/*.json
 data/cleaned/
 data/metadata/

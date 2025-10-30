@@ -1,127 +1,108 @@
-import requests
-from bs4 import BeautifulSoup
+import wikipedia
 import json
 import os
 import time
 from datetime import datetime
+from bs4 import BeautifulSoup
 
-def scrape_unesco_list():
-    """Scrape UNESCO World Heritage Sites list"""
+def get_unesco_sites_from_wikipedia():
+    """Get UNESCO sites from Wikipedia's comprehensive list"""
     print("\n" + "="*60)
-    print("UNESCO WORLD HERITAGE SCRAPER")
+    print("UNESCO WORLD HERITAGE SCRAPER (via Wikipedia)")
     print("="*60)
     
-    base_url = "https://whc.unesco.org/en/list/"
-    
     try:
-        print("\n[1/3] Fetching UNESCO site list...")
-        response = requests.get(base_url, timeout=30)
-        response.raise_for_status()
+        # Get the master list page
+        print("\n[1/2] Fetching UNESCO World Heritage Sites list from Wikipedia...")
+        page = wikipedia.page("List of World Heritage Sites", auto_suggest=False)
         
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(page.html(), 'html.parser')
         
-        # Find all heritage site links
-        site_links = []
-        for link in soup.find_all('a', href=True):
-            href = link['href']
-            if '/en/list/' in href and href.count('/') == 3:
-                site_id = href.split('/')[-1]
-                if site_id.isdigit():
-                    site_links.append(f"https://whc.unesco.org/en/list/{site_id}")
+        # Find all links in tables (UNESCO sites are in tables)
+        sites = []
+        tables = soup.find_all('table', class_='wikitable')
+        
+        for table in tables:
+            links = table.find_all('a', href=True)
+            for link in links:
+                title = link.get('title', '')
+                # Filter for actual heritage sites
+                if title and not any(skip in title.lower() for skip in 
+                    ['list of', 'world heritage site', 'unesco', 'edit', 'citation', 
+                     'help:', 'wikipedia:', 'category:', 'file:', 'template:']):
+                    sites.append(title)
         
         # Remove duplicates
-        site_links = list(set(site_links))
-        print(f"✓ Found {len(site_links)} UNESCO heritage sites")
+        sites = list(set(sites))
+        print(f"✓ Found {len(sites)} potential UNESCO sites")
         
-        return site_links[:50]  # Limit to 50 sites for time
+        return sites[:60]  # Limit to 60 for time
         
     except Exception as e:
-        print(f"✗ Error fetching UNESCO list: {e}")
+        print(f"✗ Error: {e}")
         return []
 
-def scrape_unesco_site(url):
-    """Scrape individual UNESCO heritage site"""
+def fetch_unesco_site_details(site_name):
+    """Fetch details for a UNESCO heritage site"""
     try:
-        response = requests.get(url, timeout=30)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
+        page = wikipedia.page(site_name, auto_suggest=False)
         
-        # Extract title
-        title_elem = soup.find('h1')
-        title = title_elem.text.strip() if title_elem else "Unknown"
-        
-        # Extract description
-        description = ""
-        desc_divs = soup.find_all('div', class_='description')
-        for div in desc_divs:
-            description += div.get_text(strip=True, separator=' ') + " "
-        
-        # Extract metadata
-        metadata = {}
-        
-        # Find country
-        country_elem = soup.find('a', href=lambda x: x and '/en/states-parties/' in x)
-        if country_elem:
-            metadata['country'] = country_elem.text.strip()
-        
-        # Find category (Cultural/Natural/Mixed)
-        category_elem = soup.find('div', class_='category')
-        if category_elem:
-            metadata['category'] = category_elem.text.strip()
-        
-        # Find criteria
-        criteria = []
-        criteria_elems = soup.find_all('li', class_='criterion')
-        for crit in criteria_elems:
-            criteria.append(crit.text.strip())
-        metadata['criteria'] = criteria
-        
-        # Find year inscribed
-        year_elem = soup.find(text=lambda x: x and 'Date of Inscription:' in str(x))
-        if year_elem:
-            year_text = year_elem.strip().split(':')[-1].strip()
-            metadata['year_inscribed'] = year_text
+        # Check if it's actually a UNESCO site
+        content = page.content.lower()
+        if 'unesco' not in content and 'world heritage' not in content:
+            return None
         
         article_data = {
-            'title': title,
-            'url': url,
-            'content': description,
-            'summary': description[:500] + "..." if len(description) > 500 else description,
-            'source': 'UNESCO World Heritage',
-            'metadata': metadata,
+            'title': page.title,
+            'url': page.url,
+            'content': page.content,
+            'summary': page.summary,
+            'categories': page.categories,
+            'source': 'UNESCO World Heritage (Wikipedia)',
+            'metadata': {
+                'heritage_type': 'UNESCO World Heritage Site',
+                'verified_unesco': 'unesco' in content or 'world heritage' in content
+            },
             'fetched_at': datetime.now().isoformat()
         }
         
         return article_data
         
+    except wikipedia.exceptions.DisambiguationError:
+        print(f"  ⚠ Disambiguation: {site_name}")
+        return None
+    except wikipedia.exceptions.PageError:
+        print(f"  ⚠ Page not found: {site_name}")
+        return None
     except Exception as e:
-        print(f"✗ Error scraping {url}: {e}")
+        print(f"  ✗ Error: {e}")
         return None
 
 def main():
-    # Get list of UNESCO sites
-    site_urls = scrape_unesco_list()
+    # Get UNESCO sites list
+    sites = get_unesco_sites_from_wikipedia()
     
-    if not site_urls:
+    if not sites:
         print("✗ No UNESCO sites found. Exiting.")
         return
     
-    print(f"\n[2/3] Scraping {len(site_urls)} UNESCO sites...")
+    print(f"\n[2/2] Fetching details for {len(sites)} UNESCO sites...")
     print("This will take ~10-15 minutes...\n")
     
     articles = []
-    for idx, url in enumerate(site_urls, 1):
-        print(f"[{idx}/{len(site_urls)}] Scraping: {url}")
+    
+    for idx, site_name in enumerate(sites, 1):
+        print(f"[{idx}/{len(sites)}] {site_name}")
         
-        article = scrape_unesco_site(url)
+        article = fetch_unesco_site_details(site_name)
         if article:
             articles.append(article)
-            print(f"✓ {article['title']}")
+            print(f"  ✓ {article['title']}")
         
-        time.sleep(2)  # Be respectful to UNESCO servers
+        time.sleep(1.5)  # Rate limiting
     
     # Save articles
-    print(f"\n[3/3] Saving {len(articles)} articles...")
+    print(f"\n[Saving] {len(articles)} UNESCO heritage documents...")
     os.makedirs('data/raw/unesco', exist_ok=True)
     
     for i, article in enumerate(articles):
@@ -135,7 +116,9 @@ def main():
     print("\n" + "="*60)
     print("UNESCO COLLECTION COMPLETE")
     print("="*60)
-    print(f"Total documents: {len(articles)}")
+    print(f"Sites scanned: {len(sites)}")
+    print(f"Documents collected: {len(articles)}")
+    print(f"Success rate: {len(articles)/len(sites)*100:.1f}%")
     print(f"Saved to: data/raw/unesco/")
 
 if __name__ == "__main__":
