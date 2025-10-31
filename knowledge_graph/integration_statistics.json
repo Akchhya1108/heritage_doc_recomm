@@ -1,0 +1,128 @@
+{
+  "initial_nodes": 2480,
+  "initial_edges": 8690,
+  "final_nodes": 2480,
+  "final_edges": 8719,
+  "external_enrichment": {
+    "locations_enriched": 47,
+    "persons_enriched": 28,
+    "organizations_enriched": 17,
+    "total_enriched": 92,
+    "dbpedia_success": 92,
+    "wikidata_success": 0
+  },
+  "edges_added": {
+    "geographic_hierarchy": 20,
+    "temporal_sequence": 0,
+    "domain_relationships": 0,
+    "cross_entity": 9,
+    "total": 29
+  },
+  "centrality_metrics": {
+    "top_pagerank": [
+      [
+        "cultural",
+        0.017553774357322964
+      ],
+      [
+        "ancient",
+        0.014788258496540328
+      ],
+      [
+        "religious",
+        0.01082527355776499
+      ],
+      [
+        "monument",
+        0.010453937647964352
+      ],
+      [
+        "site",
+        0.009408568544861431
+      ],
+      [
+        "military",
+        0.009043996528571527
+      ],
+      [
+        "art",
+        0.009000502329751891
+      ],
+      [
+        "architectural",
+        0.008811967764735855
+      ],
+      [
+        "royal",
+        0.008187446031660718
+      ],
+      [
+        "architecture",
+        0.007647146875755735
+      ],
+      [
+        "India",
+        0.007141476147261454
+      ],
+      [
+        "north",
+        0.006862653534370685
+      ],
+      [
+        "archaeological",
+        0.005556183782562354
+      ],
+      [
+        "india",
+        0.0027698800130690794
+      ],
+      [
+        "west",
+        0.0023008417506033643
+      ]
+    ]
+  },
+  "subgraphs": {
+    "cultural": {
+      "nodes": 2187,
+      "edges": 8357,
+      "documents": 315,
+      "file": "knowledge_graph\\subgraphs\\subgraph_cultural.gpickle"
+    },
+    "architectural": {
+      "nodes": 1326,
+      "edges": 6810,
+      "documents": 160,
+      "file": "knowledge_graph\\subgraphs\\subgraph_architectural.gpickle"
+    },
+    "religious": {
+      "nodes": 1605,
+      "edges": 7433,
+      "documents": 192,
+      "file": "knowledge_graph\\subgraphs\\subgraph_religious.gpickle"
+    },
+    "military": {
+      "nodes": 1415,
+      "edges": 7031,
+      "documents": 156,
+      "file": "knowledge_graph\\subgraphs\\subgraph_military.gpickle"
+    },
+    "archaeological": {
+      "nodes": 943,
+      "edges": 5980,
+      "documents": 102,
+      "file": "knowledge_graph\\subgraphs\\subgraph_archaeological.gpickle"
+    },
+    "royal": {
+      "nodes": 1330,
+      "edges": 7031,
+      "documents": 141,
+      "file": "knowledge_graph\\subgraphs\\subgraph_royal.gpickle"
+    }
+  },
+  "enrichment_sources": [
+    "DBpedia",
+    "Wikidata"
+  ],
+  "integration_date": "2025-10-31T10:29:32.797037"
+}

@@ -1,0 +1,554 @@
+[
+  {
+    "entity": "India",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Pakistan",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Europe",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Asia",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Gujarat",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Africa",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "China",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "England",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Afghanistan",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Egypt",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Germany",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "South Asia",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Delhi",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Italy",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Bangladesh",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Agra",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Rome",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "London",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Canada",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "France",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Athens",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Rajasthan",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Indus Valley",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Spain",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Earth",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "California",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Ahmedabad",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Australia",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Japan",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Bihar",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Sindh",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Karnataka",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Greece",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "North Africa",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Americas",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Korea",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Sanskrit",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "United States",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Kerala",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Hampi",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Bengal",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Central Asia",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Libya",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Algeria",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Argentina",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Kolkata",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Turkey",
+    "type": "location",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Shiva",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Tamil Nadu",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Hinduism",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Agra Fort",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Alexander Cunningham",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Modernist",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Rajasthan",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Muhammad",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Archaic Greek",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Neolithic",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Dutch Colonial",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Java",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Akbar",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Haryana",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Ahmad Shah",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Sanskrit",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Taj Mahal",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Micronesia",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Harappa",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Dholavira",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Buildings",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Historic Monument",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Maratha",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Johnson",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Bronze",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Tura",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Henry VIII",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Querétaro",
+    "type": "person",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "UNESCO",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "ASI",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "BCE",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Ancient Greek",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "UNESCO World Heritage Site",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Renaissance",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Classical",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Gothic",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Chola",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Islam",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Uttar Pradesh",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "World Heritage Sites",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Ancient Rome",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "IVC",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Ancient",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "Apollo",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  },
+  {
+    "entity": "National Register of Historic Places",
+    "type": "organization",
+    "dbpedia": true,
+    "wikidata": false
+  }
+]

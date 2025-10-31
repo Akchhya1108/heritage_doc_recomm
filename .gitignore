@@ -61,3 +61,6 @@ knowledge_graph/heritage_kg.gml
 knowledge_graph/heritage_kg.gpickle
 
 knowledge_graph/kg_visualization.png
+knowledge_graph/kg_external_enriched.png
+knowledge_graph/heritage_kg_integrated.gpickle
+knowledge_graph/subgraphs/
