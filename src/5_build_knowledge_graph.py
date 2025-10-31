@@ -2,7 +2,7 @@ import json
 import os
 import networkx as nx
 import numpy as np
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 import matplotlib.pyplot as plt
 from nltk.corpus import wordnet as wn
@@ -29,25 +29,36 @@ KG_FILE = os.path.join(KG_DIR, "heritage_kg.gpickle")
 KG_STATS_FILE = os.path.join(KG_DIR, "kg_statistics.json")
 KG_VIZ_FILE = os.path.join(KG_DIR, "kg_visualization.png")
 
-# ========== LESK SIMILARITY (Simplified) ==========
+# ========== CONFIGURATION ==========
+CONFIG = {
+    'similarity_threshold': 0.6,  # Cosine similarity threshold for doc-doc edges
+    'concept_similarity_threshold': 0.3,  # LOWERED from 0.5 for Lesk
+    'top_k_cluster_connections': 10,  # Only connect to top-K similar docs in cluster
+    'max_entities_per_doc': 5,  # Max entities to extract per document
+}
+
+# ========== LESK SIMILARITY (Improved) ==========
 
 def lesk_similarity(word1, word2):
     """
     Compute semantic similarity using Lesk algorithm
-    (simplified using WordNet path similarity)
     """
     try:
+        # Clean inputs
+        word1_clean = word1.lower().replace(' ', '_').replace('-', '_')
+        word2_clean = word2.lower().replace(' ', '_').replace('-', '_')
+        
         # Get synsets for both words
-        synsets1 = wn.synsets(word1.lower().replace(' ', '_'))
-        synsets2 = wn.synsets(word2.lower().replace(' ', '_'))
+        synsets1 = wn.synsets(word1_clean)
+        synsets2 = wn.synsets(word2_clean)
         
         if not synsets1 or not synsets2:
             return 0.0
         
         # Find maximum similarity between any pair of synsets
         max_sim = 0.0
-        for s1 in synsets1[:3]:  # Top 3 senses
-            for s2 in synsets2[:3]:
+        for s1 in synsets1[:5]:  # Increased from 3 to 5 senses
+            for s2 in synsets2[:5]:
                 try:
                     # Use path similarity (0 to 1)
                     sim = s1.path_similarity(s2)
@@ -62,27 +73,44 @@ def lesk_similarity(word1, word2):
         return 0.0
 
 def compute_concept_similarity(concept1, concept2):
-    """Compute similarity between two concepts (e.g., 'temple' and 'mosque')"""
+    """Compute similarity between two concepts with domain knowledge"""
     
     # Direct match
     if concept1.lower() == concept2.lower():
         return 1.0
     
-    # Lesk similarity
-    lesk_sim = lesk_similarity(concept1, concept2)
-    
     # Predefined related concepts (domain knowledge)
     related_groups = [
-        {'temple', 'mosque', 'church', 'monastery', 'shrine'},  # Religious
-        {'fort', 'fortress', 'citadel', 'castle'},  # Military
-        {'palace', 'mansion', 'haveli'},  # Royal
-        {'ancient', 'medieval', 'modern'},  # Time periods
-        {'monument', 'memorial', 'statue'},  # Commemorative
+        # Religious structures
+        {'temple', 'mosque', 'church', 'monastery', 'shrine', 'cathedral', 'stupa', 'pagoda'},
+        # Military structures
+        {'fort', 'fortress', 'citadel', 'castle', 'stronghold', 'garrison'},
+        # Royal/residential
+        {'palace', 'mansion', 'haveli', 'royal_residence'},
+        # Time periods
+        {'ancient', 'medieval', 'modern', 'prehistoric', 'contemporary'},
+        # Commemorative
+        {'monument', 'memorial', 'statue', 'cenotaph', 'tomb'},
+        # Cultural/artistic
+        {'art', 'craft', 'painting', 'sculpture', 'architecture'},
+        # Performance
+        {'dance', 'music', 'theater', 'performance', 'ritual'},
+        # Literature
+        {'literature', 'poetry', 'manuscript', 'text', 'epic'},
+        # Regions
+        {'north', 'south', 'east', 'west', 'central'},
     ]
     
+    # Check if both concepts are in the same semantic group
     for group in related_groups:
-        if concept1.lower() in group and concept2.lower() in group:
-            return max(lesk_sim, 0.7)  # High similarity for same group
+        c1_lower = concept1.lower().replace(' ', '_')
+        c2_lower = concept2.lower().replace(' ', '_')
+        
+        if c1_lower in group and c2_lower in group:
+            return 0.8  # High similarity for same group
+    
+    # Use Lesk similarity as fallback
+    lesk_sim = lesk_similarity(concept1, concept2)
     
     return lesk_sim
 
@@ -127,7 +155,7 @@ def create_base_graph(documents):
     return G
 
 def add_entity_nodes(G, documents):
-    """Add entity nodes (places, people, organizations)"""
+    """Add entity nodes (places, people, organizations) - IMPROVED"""
     print("\n[Phase 3] Adding entity nodes...")
     
     all_locations = []
@@ -138,43 +166,68 @@ def add_entity_nodes(G, documents):
     for idx, doc in enumerate(documents):
         entities = doc.get('entities', {})
         
-        locations = entities.get('locations', [])
-        persons = entities.get('persons', [])
-        orgs = entities.get('organizations', [])
+        # Handle both list and dict formats
+        if isinstance(entities, dict):
+            locations = entities.get('locations', [])
+            persons = entities.get('persons', [])
+            orgs = entities.get('organizations', [])
+        else:
+            locations = []
+            persons = []
+            orgs = []
+        
+        # Ensure they're lists
+        if not isinstance(locations, list):
+            locations = []
+        if not isinstance(persons, list):
+            persons = []
+        if not isinstance(orgs, list):
+            orgs = []
         
         all_locations.extend(locations)
         all_persons.extend(persons)
         all_orgs.extend(orgs)
         
-        # Link document to its entities
-        for loc in locations[:5]:  # Top 5 locations per doc
-            loc_id = f"loc_{loc.lower().replace(' ', '_')}"
-            if not G.has_node(loc_id):
-                G.add_node(loc_id, node_type='location', name=loc)
-            G.add_edge(f"doc_{idx}", loc_id, relation='mentions_location', weight=1.0)
+        # Link document to its entities (top N only)
+        for loc in locations[:CONFIG['max_entities_per_doc']]:
+            if loc and isinstance(loc, str) and len(loc) > 2:
+                loc_id = f"loc_{loc.lower().replace(' ', '_')[:50]}"
+                if not G.has_node(loc_id):
+                    G.add_node(loc_id, node_type='location', name=loc)
+                G.add_edge(f"doc_{idx}", loc_id, relation='mentions_location', weight=1.0)
         
-        for person in persons[:3]:  # Top 3 persons per doc
-            person_id = f"person_{person.lower().replace(' ', '_')}"
-            if not G.has_node(person_id):
-                G.add_node(person_id, node_type='person', name=person)
-            G.add_edge(f"doc_{idx}", person_id, relation='mentions_person', weight=1.0)
+        for person in persons[:3]:
+            if person and isinstance(person, str) and len(person) > 2:
+                person_id = f"person_{person.lower().replace(' ', '_')[:50]}"
+                if not G.has_node(person_id):
+                    G.add_node(person_id, node_type='person', name=person)
+                G.add_edge(f"doc_{idx}", person_id, relation='mentions_person', weight=1.0)
         
-        for org in orgs[:3]:  # Top 3 orgs per doc
-            org_id = f"org_{org.lower().replace(' ', '_')}"
-            if not G.has_node(org_id):
-                G.add_node(org_id, node_type='organization', name=org)
-            G.add_edge(f"doc_{idx}", org_id, relation='mentions_org', weight=1.0)
+        for org in orgs[:3]:
+            if org and isinstance(org, str) and len(org) > 2:
+                org_id = f"org_{org.lower().replace(' ', '_')[:50]}"
+                if not G.has_node(org_id):
+                    G.add_node(org_id, node_type='organization', name=org)
+                G.add_edge(f"doc_{idx}", org_id, relation='mentions_org', weight=1.0)
     
     location_counts = Counter(all_locations)
     person_counts = Counter(all_persons)
     org_counts = Counter(all_orgs)
     
-    print(f"  ✓ Added {len([n for n, d in G.nodes(data=True) if d.get('node_type') == 'location'])} location nodes")
-    print(f"  ✓ Added {len([n for n, d in G.nodes(data=True) if d.get('node_type') == 'person'])} person nodes")
-    print(f"  ✓ Added {len([n for n, d in G.nodes(data=True) if d.get('node_type') == 'organization'])} organization nodes")
+    loc_nodes = len([n for n, d in G.nodes(data=True) if d.get('node_type') == 'location'])
+    person_nodes = len([n for n, d in G.nodes(data=True) if d.get('node_type') == 'person'])
+    org_nodes = len([n for n, d in G.nodes(data=True) if d.get('node_type') == 'organization'])
     
-    print(f"\n  Top locations: {location_counts.most_common(5)}")
-    print(f"  Top persons: {person_counts.most_common(3)}")
+    print(f"  ✓ Added {loc_nodes} location nodes")
+    print(f"  ✓ Added {person_nodes} person nodes")
+    print(f"  ✓ Added {org_nodes} organization nodes")
+    
+    if location_counts:
+        print(f"\n  Top locations: {location_counts.most_common(5)}")
+    if person_counts:
+        print(f"  Top persons: {person_counts.most_common(3)}")
+    
+    return loc_nodes, person_nodes, org_nodes
 
 def add_concept_nodes(G, documents):
     """Add concept nodes (heritage types, domains, time periods)"""
@@ -189,23 +242,25 @@ def add_concept_nodes(G, documents):
         classifications = doc['classifications']
         
         # Heritage types
-        for htype in classifications['heritage_types']:
-            all_heritage_types.add(htype)
-            htype_id = f"type_{htype}"
-            if not G.has_node(htype_id):
-                G.add_node(htype_id, node_type='heritage_type', name=htype)
-            G.add_edge(f"doc_{idx}", htype_id, relation='has_type', weight=1.0)
+        for htype in classifications.get('heritage_types', []):
+            if htype:
+                all_heritage_types.add(htype)
+                htype_id = f"type_{htype}"
+                if not G.has_node(htype_id):
+                    G.add_node(htype_id, node_type='heritage_type', name=htype)
+                G.add_edge(f"doc_{idx}", htype_id, relation='has_type', weight=1.0)
         
         # Domains
-        for domain in classifications['domains']:
-            all_domains.add(domain)
-            domain_id = f"domain_{domain}"
-            if not G.has_node(domain_id):
-                G.add_node(domain_id, node_type='domain', name=domain)
-            G.add_edge(f"doc_{idx}", domain_id, relation='belongs_to_domain', weight=1.0)
+        for domain in classifications.get('domains', []):
+            if domain:
+                all_domains.add(domain)
+                domain_id = f"domain_{domain}"
+                if not G.has_node(domain_id):
+                    G.add_node(domain_id, node_type='domain', name=domain)
+                G.add_edge(f"doc_{idx}", domain_id, relation='belongs_to_domain', weight=1.0)
         
         # Time period
-        period = classifications['time_period']
+        period = classifications.get('time_period')
         if period and period != 'unknown':
             all_periods.add(period)
             period_id = f"period_{period}"
@@ -214,7 +269,7 @@ def add_concept_nodes(G, documents):
             G.add_edge(f"doc_{idx}", period_id, relation='from_period', weight=1.0)
         
         # Region
-        region = classifications['region']
+        region = classifications.get('region')
         if region and region != 'unknown':
             all_regions.add(region)
             region_id = f"region_{region}"
@@ -253,12 +308,14 @@ def add_similarity_edges(G, documents, embeddings, threshold=0.6):
     print(f"  ✓ Added {edges_added} similarity edges (threshold {threshold})")
 
 def add_concept_similarity_edges(G):
-    """Add edges between similar concepts using Lesk similarity"""
-    print("\n[Phase 6] Computing concept similarities (Lesk)...")
+    """Add edges between similar concepts using Lesk similarity - IMPROVED"""
+    print(f"\n[Phase 6] Computing concept similarities (Lesk, threshold={CONFIG['concept_similarity_threshold']})...")
     
     # Get all concept nodes
     heritage_types = [(n, d['name']) for n, d in G.nodes(data=True) if d.get('node_type') == 'heritage_type']
     domains = [(n, d['name']) for n, d in G.nodes(data=True) if d.get('node_type') == 'domain']
+    periods = [(n, d['name']) for n, d in G.nodes(data=True) if d.get('node_type') == 'time_period']
+    regions = [(n, d['name']) for n, d in G.nodes(data=True) if d.get('node_type') == 'region']
     
     edges_added = 0
     
@@ -266,7 +323,7 @@ def add_concept_similarity_edges(G):
     for i, (id1, name1) in enumerate(heritage_types):
         for id2, name2 in heritage_types[i+1:]:
             sim = compute_concept_similarity(name1, name2)
-            if sim > 0.5:  # Threshold for concept similarity
+            if sim > CONFIG['concept_similarity_threshold']:
                 G.add_edge(id1, id2, relation='semantically_related', weight=float(sim))
                 edges_added += 1
     
@@ -274,18 +331,41 @@ def add_concept_similarity_edges(G):
     for i, (id1, name1) in enumerate(domains):
         for id2, name2 in domains[i+1:]:
             sim = compute_concept_similarity(name1, name2)
-            if sim > 0.5:
+            if sim > CONFIG['concept_similarity_threshold']:
                 G.add_edge(id1, id2, relation='semantically_related', weight=float(sim))
                 edges_added += 1
     
+    # Connect similar time periods
+    for i, (id1, name1) in enumerate(periods):
+        for id2, name2 in periods[i+1:]:
+            sim = compute_concept_similarity(name1, name2)
+            if sim > CONFIG['concept_similarity_threshold']:
+                G.add_edge(id1, id2, relation='temporally_related', weight=float(sim))
+                edges_added += 1
+    
+    # Connect similar regions
+    for i, (id1, name1) in enumerate(regions):
+        for id2, name2 in regions[i+1:]:
+            sim = compute_concept_similarity(name1, name2)
+            if sim > CONFIG['concept_similarity_threshold']:
+                G.add_edge(id1, id2, relation='geographically_related', weight=float(sim))
+                edges_added += 1
+    
     print(f"  ✓ Added {edges_added} concept similarity edges")
+    
+    return edges_added
 
-def add_cluster_edges(G, documents):
-    """Add edges connecting documents in the same cluster"""
-    print("\n[Phase 7] Adding cluster relationships...")
+def add_cluster_edges(G, documents, embeddings):
+    """
+    Add edges connecting documents in the same cluster - IMPROVED
+    Only connect to top-K most similar documents within cluster
+    """
+    print(f"\n[Phase 7] Adding cluster relationships (top-{CONFIG['top_k_cluster_connections']} per cluster)...")
+    
+    # Compute similarity matrix
+    similarity_matrix = cosine_similarity(embeddings)
     
     # Group documents by cluster
-    from collections import defaultdict
     clusters = defaultdict(list)
     
     for idx, doc in enumerate(documents):
@@ -294,20 +374,36 @@ def add_cluster_edges(G, documents):
     edges_added = 0
     
     for cluster_id, doc_indices in clusters.items():
-        # Connect documents in the same cluster
-        for i in range(len(doc_indices)):
-            for j in range(i+1, len(doc_indices)):
-                if not G.has_edge(f"doc_{doc_indices[i]}", f"doc_{doc_indices[j]}"):
+        # For each document in the cluster
+        for doc_idx in doc_indices:
+            # Get similarities to other docs in same cluster
+            similarities = []
+            for other_idx in doc_indices:
+                if other_idx != doc_idx:
+                    sim = similarity_matrix[doc_idx][other_idx]
+                    similarities.append((other_idx, sim))
+            
+            # Sort by similarity and keep top-K
+            similarities.sort(key=lambda x: x[1], reverse=True)
+            top_k = similarities[:CONFIG['top_k_cluster_connections']]
+            
+            # Add edges to top-K similar documents
+            for other_idx, sim in top_k:
+                doc_id_1 = f"doc_{doc_idx}"
+                doc_id_2 = f"doc_{other_idx}"
+                
+                # Only add if edge doesn't exist (avoid duplicates)
+                if not G.has_edge(doc_id_1, doc_id_2):
                     G.add_edge(
-                        f"doc_{doc_indices[i]}",
-                        f"doc_{doc_indices[j]}",
+                        doc_id_1,
+                        doc_id_2,
                         relation='same_cluster',
-                        weight=0.7,
+                        weight=float(sim),
                         cluster_id=cluster_id
                     )
                     edges_added += 1
     
-    print(f"  ✓ Added {edges_added} cluster edges")
+    print(f"  ✓ Added {edges_added} cluster edges (reduced from {sum(len(docs)*(len(docs)-1)//2 for docs in clusters.values())})")
 
 def compute_graph_statistics(G):
     """Compute and save graph statistics"""
@@ -322,7 +418,8 @@ def compute_graph_statistics(G):
         'average_degree': sum(dict(G.degree()).values()) / G.number_of_nodes(),
         'is_connected': nx.is_connected(G),
         'number_of_components': nx.number_connected_components(G),
-        'creation_date': datetime.now().isoformat()
+        'creation_date': datetime.now().isoformat(),
+        'config': CONFIG
     }
     
     # Count node types
@@ -416,7 +513,7 @@ def visualize_graph_sample(G, documents):
                   for n in subgraph.nodes() if subgraph.nodes[n].get('node_type') == 'document'}
     nx.draw_networkx_labels(subgraph, pos, doc_labels, font_size=6)
     
-    plt.title('Heritage Knowledge Graph (Sample)', fontsize=16, fontweight='bold')
+    plt.title('Heritage Knowledge Graph (Sample) - IMPROVED', fontsize=16, fontweight='bold')
     plt.axis('off')
     plt.tight_layout()
     
@@ -431,10 +528,8 @@ def save_graph(G, stats):
     os.makedirs(KG_DIR, exist_ok=True)
     
     # Save graph as pickle (preserves all attributes)
-    import pickle
     with open(KG_FILE, "wb") as f:
-      pickle.dump(G, f)
-
+        pickle.dump(G, f)
     print(f"  ✓ Graph saved to: {KG_FILE}")
     
     # Save statistics
@@ -449,9 +544,13 @@ def save_graph(G, stats):
 
 def main():
     print("="*70)
-    print("KNOWLEDGE GRAPH CONSTRUCTION")
+    print("KNOWLEDGE GRAPH CONSTRUCTION (IMPROVED)")
     print("="*70)
     print(f"Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"\n⚙️  Configuration:")
+    print(f"   - Similarity threshold: {CONFIG['similarity_threshold']}")
+    print(f"   - Concept similarity threshold: {CONFIG['concept_similarity_threshold']}")
+    print(f"   - Top-K cluster connections: {CONFIG['top_k_cluster_connections']}")
     
     # Load data
     documents, embeddings = load_data()
@@ -460,19 +559,19 @@ def main():
     G = create_base_graph(documents)
     
     # Add entity nodes
-    add_entity_nodes(G, documents)
+    loc_count, person_count, org_count = add_entity_nodes(G, documents)
     
     # Add concept nodes
     add_concept_nodes(G, documents)
     
     # Add similarity edges
-    add_similarity_edges(G, documents, embeddings, threshold=0.6)
+    add_similarity_edges(G, documents, embeddings, threshold=CONFIG['similarity_threshold'])
     
-    # Add concept similarity edges (Lesk)
-    add_concept_similarity_edges(G)
+    # Add concept similarity edges (Lesk) - IMPROVED
+    concept_edges = add_concept_similarity_edges(G)
     
-    # Add cluster edges
-    add_cluster_edges(G, documents)
+    # Add cluster edges - IMPROVED (top-K only)
+    add_cluster_edges(G, documents, embeddings)
     
     # Compute statistics
     stats = compute_graph_statistics(G)
@@ -485,10 +584,14 @@ def main():
     
     # Summary
     print("\n" + "="*70)
-    print("KNOWLEDGE GRAPH CONSTRUCTION COMPLETE")
+    print("✅ KNOWLEDGE GRAPH CONSTRUCTION COMPLETE")
     print("="*70)
-    print(f"✅ Built rich KG with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
-    print(f"\n📊 Files created:")
+    print(f"Built OPTIMIZED KG with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
+    print(f"\n📊 Key improvements:")
+    print(f"   - Reduced cluster edges from ~6,500 to ~{stats['edge_types'].get('same_cluster', 0)}")
+    print(f"   - Added {concept_edges} concept similarity edges")
+    print(f"   - Entity nodes: {loc_count} locations, {person_count} persons, {org_count} orgs")
+    print(f"\n📁 Files created:")
     print(f"   - {KG_FILE}")
     print(f"   - {KG_STATS_FILE}")
     print(f"   - {KG_VIZ_FILE}")

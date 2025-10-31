@@ -3,26 +3,57 @@ import os
 import re
 from datetime import datetime
 from collections import Counter
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk import pos_tag, ne_chunk
+import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Download required NLTK data (run once)
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
-    nltk.download('averaged_perceptron_tagger')
-    nltk.download('maxent_ne_chunker')
-    nltk.download('words')
-    nltk.download('stopwords')
+# Load spaCy model
+print("Loading spaCy model...")
+nlp = spacy.load("en_core_web_sm")
 
 # Directories
 CLEAN_DIR = "data/cleaned data"
 META_DIR = "data/metadata"
 OUTPUT_FILE = os.path.join(META_DIR, "enriched_metadata.json")
+
+# ========== INDIAN HERITAGE ENTITY LISTS (Custom) ==========
+
+# Common Indian heritage locations
+INDIAN_LOCATIONS = {
+    'taj mahal', 'red fort', 'qutub minar', 'india gate', 'gateway of india',
+    'ajanta caves', 'ellora caves', 'khajuraho', 'hampi', 'fatehpur sikri',
+    'konark', 'sanchi', 'nalanda', 'bodh gaya', 'varanasi', 'madurai',
+    'thanjavur', 'mahabalipuram', 'pattadakal', 'aihole', 'badami',
+    'mehrangarh', 'amber fort', 'mysore palace', 'victoria memorial',
+    'charminar', 'golconda', 'agra', 'delhi', 'jaipur', 'udaipur',
+    'mumbai', 'kolkata', 'chennai', 'bangalore', 'hyderabad',
+    'rajasthan', 'maharashtra', 'karnataka', 'tamil nadu', 'kerala',
+    'gujarat', 'madhya pradesh', 'uttar pradesh', 'bihar', 'odisha'
+}
+
+# Historical figures
+INDIAN_PERSONS = {
+    'ashoka', 'akbar', 'shah jahan', 'aurangzeb', 'babur', 'humayun',
+    'krishnadevaraya', 'rajaraja chola', 'raja raja', 'rajendra chola',
+    'chandragupta', 'samudragupta', 'harsha', 'pulakeshin',
+    'shivaji', 'rani lakshmibai', 'tipu sultan', 'maharana pratap',
+    'gautama buddha', 'mahavira', 'guru nanak', 'kabir',
+    'kalidasa', 'aryabhata', 'charaka', 'sushruta'
+}
+
+# Dynasties and organizations
+INDIAN_ORGANIZATIONS = {
+    'mughal', 'maurya', 'gupta', 'chola', 'pallava', 'chalukya',
+    'hoysala', 'vijayanagara', 'maratha', 'rajput', 'sultanate',
+    'archaeological survey of india', 'asi', 'unesco',
+    'indian national trust', 'intach'
+}
+
+# Monument types
+MONUMENT_KEYWORDS = {
+    'temple', 'fort', 'palace', 'mosque', 'church', 'stupa', 'monastery',
+    'tomb', 'mausoleum', 'memorial', 'gateway', 'gate', 'tower', 'minaret',
+    'cave', 'complex', 'site', 'ruins', 'monument'
+}
 
 # ========== CLASSIFICATION RULES ==========
 
@@ -67,52 +98,108 @@ INDIAN_REGIONS = {
     'central': ['madhya pradesh', 'chhattisgarh']
 }
 
-# ========== EXTRACTION FUNCTIONS ==========
+# ========== ENTITY EXTRACTION WITH spaCy + Custom Lists ==========
 
-def extract_named_entities(text):
-    """Extract named entities using NLTK"""
+def extract_entities_with_spacy(text, title):
+    """
+    Extract named entities using spaCy + custom Indian heritage lists
+    This is MUCH faster and more reliable than Gemini!
+    """
+    
     entities = {
-        'persons': [],
         'locations': [],
+        'persons': [],
         'organizations': [],
-        'dates': []
+        'dates': [],
+        'monuments': []
     }
     
-    try:
-        sentences = sent_tokenize(text[:5000])  # First 5000 chars for speed
+    # Process with spaCy (first 5000 chars for speed)
+    doc = nlp(text[:5000])
+    
+    # Extract entities using spaCy NER
+    for ent in doc.ents:
+        entity_text = ent.text.strip()
+        entity_lower = entity_text.lower()
         
-        for sentence in sentences[:20]:  # First 20 sentences
-            tokens = word_tokenize(sentence)
-            tagged = pos_tag(tokens)
-            chunks = ne_chunk(tagged, binary=False)
+        if ent.label_ == "GPE" or ent.label_ == "LOC":
+            # Geographic/Location entity
+            entities['locations'].append(entity_text)
             
-            for chunk in chunks:
-                if hasattr(chunk, 'label'):
-                    entity = ' '.join(c[0] for c in chunk)
-                    
-                    if chunk.label() == 'PERSON':
-                        entities['persons'].append(entity)
-                    elif chunk.label() == 'GPE' or chunk.label() == 'LOCATION':
-                        entities['locations'].append(entity)
-                    elif chunk.label() == 'ORGANIZATION':
-                        entities['organizations'].append(entity)
-        
-        # Extract dates with regex
-        date_pattern = r'\b(\d{1,4}\s*(AD|BCE?|CE)\b|\d{4}s?\b|\d{1,2}th\s+century)'
-        entities['dates'] = re.findall(date_pattern, text, re.IGNORECASE)
-        entities['dates'] = [d[0] if isinstance(d, tuple) else d for d in entities['dates']]
-        
-    except Exception as e:
-        print(f"  ⚠ NER Error: {e}")
+        elif ent.label_ == "PERSON":
+            # Person entity
+            entities['persons'].append(entity_text)
+            
+        elif ent.label_ == "ORG":
+            # Organization entity
+            entities['organizations'].append(entity_text)
+            
+        elif ent.label_ == "DATE":
+            # Date entity
+            entities['dates'].append(entity_text)
+    
+    # Enhance with custom Indian heritage lists
+    text_lower = text.lower()
+    
+    # Extract known Indian locations
+    for location in INDIAN_LOCATIONS:
+        if location in text_lower and location not in [l.lower() for l in entities['locations']]:
+            entities['locations'].append(location.title())
+    
+    # Extract known Indian persons
+    for person in INDIAN_PERSONS:
+        if person in text_lower and person not in [p.lower() for p in entities['persons']]:
+            entities['persons'].append(person.title())
+    
+    # Extract known organizations/dynasties
+    for org in INDIAN_ORGANIZATIONS:
+        if org in text_lower and org not in [o.lower() for o in entities['organizations']]:
+            entities['organizations'].append(org.title())
+    
+    # Extract monuments (buildings with monument keywords)
+    # Look for patterns like "X temple", "Y fort", "Z palace"
+    for keyword in MONUMENT_KEYWORDS:
+        # Find mentions like "Brihadeeswarar Temple", "Red Fort", etc.
+        pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+' + keyword
+        matches = re.findall(pattern, text[:3000], re.IGNORECASE)
+        for match in matches:
+            monument_name = f"{match} {keyword}"
+            if monument_name not in entities['monuments']:
+                entities['monuments'].append(monument_name.title())
+    
+    # Extract dates with regex (centuries, years, etc.)
+    date_patterns = [
+        r'\b(\d{1,4}\s*(?:AD|BCE?|CE))\b',
+        r'\b(\d{4}s?)\b',
+        r'\b(\d{1,2}th\s+century)\b',
+        r'\b(century\s+(?:AD|BCE?|CE))\b'
+    ]
+    
+    for pattern in date_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        for match in matches:
+            if isinstance(match, tuple):
+                match = match[0]
+            if match and match not in entities['dates']:
+                entities['dates'].append(match)
     
     # Remove duplicates and clean
     for key in entities:
-        entities[key] = list(set([e.strip() for e in entities[key] if len(e.strip()) > 2]))
+        # Remove duplicates (case-insensitive)
+        seen = set()
+        unique = []
+        for item in entities[key]:
+            item_lower = item.lower().strip()
+            if item_lower and len(item_lower) > 2 and item_lower not in seen:
+                seen.add(item_lower)
+                unique.append(item.strip())
+        entities[key] = unique[:20]  # Limit to top 20 per category
     
     return entities
 
+# ========== CLASSIFICATION FUNCTIONS ==========
+
 def classify_heritage_type(text):
-    """Classify document into heritage type"""
     text_lower = text.lower()
     scores = {htype: 0 for htype in HERITAGE_TYPES}
     
@@ -120,12 +207,10 @@ def classify_heritage_type(text):
         for keyword in keywords:
             scores[htype] += text_lower.count(keyword)
     
-    # Return top 2 types
     sorted_types = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     return [t[0] for t in sorted_types[:2] if t[1] > 0]
 
 def classify_domain(text):
-    """Classify into cultural domain"""
     text_lower = text.lower()
     scores = {domain: 0 for domain in DOMAINS}
     
@@ -137,7 +222,6 @@ def classify_domain(text):
     return [d[0] for d in sorted_domains[:3] if d[1] > 0]
 
 def classify_time_period(text):
-    """Classify into time period"""
     text_lower = text.lower()
     scores = {period: 0 for period in TIME_PERIODS}
     
@@ -154,7 +238,6 @@ def classify_time_period(text):
     return 'unknown'
 
 def extract_architectural_style(text):
-    """Extract architectural style"""
     text_lower = text.lower()
     found_styles = []
     
@@ -167,7 +250,6 @@ def extract_architectural_style(text):
     return list(set(found_styles))
 
 def classify_region(text):
-    """Classify Indian region"""
     text_lower = text.lower()
     
     for region, states in INDIAN_REGIONS.items():
@@ -175,14 +257,12 @@ def classify_region(text):
             if state in text_lower:
                 return region
     
-    # Check for country mentions
     if 'india' in text_lower:
         return 'india'
     
     return 'unknown'
 
 def extract_keywords_tfidf(documents, top_n=10):
-    """Extract keywords using TF-IDF"""
     try:
         vectorizer = TfidfVectorizer(
             max_features=1000,
@@ -195,7 +275,6 @@ def extract_keywords_tfidf(documents, top_n=10):
         tfidf_matrix = vectorizer.fit_transform(documents)
         feature_names = vectorizer.get_feature_names_out()
         
-        # Get top keywords per document
         all_keywords = []
         for doc_idx in range(len(documents)):
             scores = tfidf_matrix[doc_idx].toarray()[0]
@@ -209,7 +288,6 @@ def extract_keywords_tfidf(documents, top_n=10):
         return [[] for _ in documents]
 
 def determine_tangibility(heritage_types):
-    """Determine if heritage is tangible or intangible"""
     tangible = ['monument', 'site', 'artifact', 'architecture']
     intangible = ['tradition', 'art']
     
@@ -217,15 +295,13 @@ def determine_tangibility(heritage_types):
         return 'tangible'
     elif any(t in intangible for t in heritage_types):
         return 'intangible'
-    return 'tangible'  # default
+    return 'tangible'
 
 # ========== MAIN PROCESSING ==========
 
 def process_all_documents():
-    """Process all cleaned documents and extract metadata"""
-    
     print("="*70)
-    print("ENHANCED METADATA EXTRACTION")
+    print("ENHANCED METADATA EXTRACTION WITH spaCy")
     print("="*70)
     
     # Load existing metadata
@@ -258,20 +334,32 @@ def process_all_documents():
     
     print(f"✓ Loaded {len(documents)} document texts")
     
-    # Extract TF-IDF keywords for all documents
+    # Extract TF-IDF keywords
     print("\n[Phase 2] Extracting TF-IDF keywords...")
     all_keywords = extract_keywords_tfidf(documents, top_n=15)
     print("✓ TF-IDF extraction complete")
     
-    # Process each document
-    print("\n[Phase 3] Extracting rich metadata...")
+    # Process each document with spaCy
+    print("\n[Phase 3] Extracting entities with spaCy...")
+    print("⏱️  This will take ~2-3 minutes for 369 documents")
+    
     enriched_metadata = []
     
     for idx, (meta, text) in enumerate(zip(valid_metadata, documents), 1):
-        print(f"[{idx}/{len(valid_metadata)}] {meta['title'][:50]}...")
+        if idx % 50 == 0 or idx == 1:
+            print(f"\n[{idx}/{len(valid_metadata)}] {meta['title'][:60]}...")
         
-        # Extract entities
-        entities = extract_named_entities(text)
+        # Extract entities using spaCy + custom lists
+        entities = extract_entities_with_spacy(text, meta['title'])
+        
+        # Show progress
+        if idx % 50 == 0 or idx == 1:
+            total_entities = sum(len(entities[key]) for key in entities)
+            print(f"    ✓ Extracted {total_entities} entities: "
+                  f"{len(entities['locations'])} locations, "
+                  f"{len(entities['persons'])} persons, "
+                  f"{len(entities['organizations'])} orgs, "
+                  f"{len(entities['monuments'])} monuments")
         
         # Classifications
         heritage_types = classify_heritage_type(text)
@@ -283,7 +371,7 @@ def process_all_documents():
         
         # Build enriched metadata
         enriched = {
-            **meta,  # Keep original metadata
+            **meta,
             'entities': entities,
             'classifications': {
                 'heritage_types': heritage_types,
@@ -306,34 +394,45 @@ def process_all_documents():
     
     # Statistics
     print("\n" + "="*70)
-    print("METADATA EXTRACTION COMPLETE")
+    print("✅ METADATA EXTRACTION COMPLETE")
     print("="*70)
-    print(f"✅ Processed: {len(enriched_metadata)} documents")
-    print(f"📊 Output: {OUTPUT_FILE}")
+    print(f"Processed: {len(enriched_metadata)} documents")
+    print(f"Output: {OUTPUT_FILE}")
     
-    # Show sample statistics
+    # Entity statistics
+    total_locations = sum(len(doc['entities']['locations']) for doc in enriched_metadata)
+    total_persons = sum(len(doc['entities']['persons']) for doc in enriched_metadata)
+    total_orgs = sum(len(doc['entities']['organizations']) for doc in enriched_metadata)
+    total_monuments = sum(len(doc['entities']['monuments']) for doc in enriched_metadata)
+    
+    print("\n📊 ENTITY STATISTICS:")
+    print(f"  Total Locations: {total_locations}")
+    print(f"  Total Persons: {total_persons}")
+    print(f"  Total Organizations: {total_orgs}")
+    print(f"  Total Monuments: {total_monuments}")
+    print(f"  Average entities per doc: {(total_locations + total_persons + total_orgs + total_monuments) / len(enriched_metadata):.1f}")
+    
+    # Classification statistics
     all_types = [t for doc in enriched_metadata for t in doc['classifications']['heritage_types']]
     all_domains = [d for doc in enriched_metadata for d in doc['classifications']['domains']]
     time_periods = [doc['classifications']['time_period'] for doc in enriched_metadata]
     
-    print("\n📈 STATISTICS:")
+    print("\n📈 CLASSIFICATION STATISTICS:")
     print(f"  Heritage Types: {dict(Counter(all_types).most_common(5))}")
     print(f"  Domains: {dict(Counter(all_domains).most_common(5))}")
     print(f"  Time Periods: {dict(Counter(time_periods))}")
     
-    print("\n💡 Sample document structure:")
+    # Sample
+    print("\n💡 SAMPLE DOCUMENT:")
     if enriched_metadata:
         sample = enriched_metadata[0]
         print(f"  Title: {sample['title']}")
         print(f"  Heritage Types: {sample['classifications']['heritage_types']}")
-        print(f"  Domains: {sample['classifications']['domains']}")
-        print(f"  Time Period: {sample['classifications']['time_period']}")
-        print(f"  Region: {sample['classifications']['region']}")
-        print(f"  Entities Found:")
-        print(f"    - Locations: {len(sample['entities']['locations'])}")
-        print(f"    - Persons: {len(sample['entities']['persons'])}")
-        print(f"    - Organizations: {len(sample['entities']['organizations'])}")
-        print(f"  Keywords (top 5): {sample['keywords_tfidf'][:5]}")
+        print(f"  Entities:")
+        print(f"    Locations: {sample['entities']['locations'][:5]}")
+        print(f"    Persons: {sample['entities']['persons'][:3]}")
+        print(f"    Monuments: {sample['entities']['monuments'][:3]}")
+    
     print("="*70)
 
 if __name__ == "__main__":

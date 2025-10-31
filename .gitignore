@@ -22,16 +22,13 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.env
 
 # Data files (don't commit large datasets)
 data
 data/raw/**/*.json
 data/cleaned/
 data/metadata/
-knowledge_graph
-knowledge_graph/heritage_kg.gpickle
-knowledge_graph/heritage_kg.gml
-knowledge_graph/kg_visualization
 
 # Models (large files)
 models/
@@ -59,3 +56,8 @@ Thumbs.db
 
 # Logs
 *.log
+knowledge_graph/heritage_kg.gml
+knowledge_graph/heritage_kg.gml
+knowledge_graph/heritage_kg.gpickle
+
+knowledge_graph/kg_visualization.png

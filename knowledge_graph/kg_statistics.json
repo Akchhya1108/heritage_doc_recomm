@@ -1,66 +1,81 @@
 {
-  "total_nodes": 390,
-  "total_edges": 9495,
+  "total_nodes": 2480,
+  "total_edges": 8690,
   "node_types": {
     "document": 369,
+    "location": 733,
+    "organization": 668,
+    "person": 689,
     "heritage_type": 6,
     "domain": 6,
     "time_period": 3,
     "region": 6
   },
   "edge_types": {
+    "mentions_location": 1634,
+    "mentions_org": 1068,
     "has_type": 727,
     "belongs_to_domain": 1066,
     "from_period": 321,
     "located_in_region": 247,
     "similar_to": 606,
-    "same_cluster": 6528
+    "same_cluster": 2025,
+    "mentions_person": 964,
+    "semantically_related": 19,
+    "temporally_related": 3,
+    "geographically_related": 10
   },
-  "density": 0.12517302748665216,
-  "average_degree": 48.69230769230769,
+  "density": 0.002826972374396544,
+  "average_degree": 7.008064516129032,
   "is_connected": true,
   "number_of_components": 1,
-  "creation_date": "2025-10-30T22:55:16.907228",
+  "creation_date": "2025-10-31T00:22:03.339228",
+  "config": {
+    "similarity_threshold": 0.6,
+    "concept_similarity_threshold": 0.3,
+    "top_k_cluster_connections": 10,
+    "max_entities_per_doc": 5
+  },
   "top_central_documents": [
     {
+      "title": "List of World Heritage Sites in Arab States",
+      "centrality": 0.022589753933037516
+    },
+    {
       "title": "List of heritage registers",
-      "centrality": 0.2185089974293059
+      "centrality": 0.021782977006857603
     },
     {
-      "title": "Intangible cultural heritage",
-      "centrality": 0.19023136246786632
-    },
-    {
-      "title": "Heritage conservation in Canada",
-      "centrality": 0.18251928020565553
-    },
-    {
-      "title": "Conservation and restoration of cultural property",
-      "centrality": 0.1773778920308483
-    },
-    {
-      "title": "Conservation and restoration of cultural property",
-      "centrality": 0.1773778920308483
-    },
-    {
-      "title": "World Heritage Sites by country",
-      "centrality": 0.1748071979434447
+      "title": "List of World Heritage Sites in Arab States",
+      "centrality": 0.021782977006857603
     },
     {
       "title": "World Heritage Site",
-      "centrality": 0.16709511568123392
+      "centrality": 0.021379588543767647
     },
     {
-      "title": "History of India",
-      "centrality": 0.16709511568123392
+      "title": "List of destroyed heritage",
+      "centrality": 0.02016942315449778
     },
     {
-      "title": "Historic preservation",
-      "centrality": 0.16709511568123392
+      "title": "List of destroyed heritage",
+      "centrality": 0.02016942315449778
     },
     {
-      "title": "Sculpture",
-      "centrality": 0.16709511568123392
+      "title": "Lists of World Heritage Sites",
+      "centrality": 0.01936264622831787
+    },
+    {
+      "title": "Lists of World Heritage Sites",
+      "centrality": 0.018959257765227912
+    },
+    {
+      "title": "List of World Heritage Sites in the United States",
+      "centrality": 0.017749092375958047
+    },
+    {
+      "title": "Cultural heritage",
+      "centrality": 0.017749092375958047
     }
   ]
 }
